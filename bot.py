@@ -3,8 +3,11 @@ import requests
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # Your Bot Token from BotFather
-Token = " 7514819775:AAE3fyvXbDabvJQNPYwVm6CYnBl0k2A7T_U".strip()
+Token = "7514819775:AAE3fyvXbDabvJQNPYwVm6CYnBl0k2A7T_U".strip()
 bot = telebot.TeleBot(Token)
+
+# Delete existing webhook to avoid polling conflict
+bot.remove_webhook()
 
 # Store user states
 user_states = {}
@@ -22,7 +25,7 @@ headers = {
 # /start command
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.reply_to(message, """ Welcome to ShadowAI Bot!
+    bot.reply_to(message, """Welcome to ShadowAI Bot!
 
 Available commands:
 /start - Show this message
@@ -71,14 +74,12 @@ def handle_message(message):
     user_id = message.chat.id
     if user_states.get(user_id) == "awaiting_problem":
         problem = message.text
-        bot.reply_to(message, " Solving your problem with LLaMA 3...")
+        bot.reply_to(message, "Solving your problem with LLaMA 3...")
 
         # Prepare request data
         data = {
-            "model": "llama3-70b-8192",  # Make sure this model is available to your Groq account
-            "messages": [
-                {"role": "user", "content": problem}
-            ],
+            "model": "llama3-70b-8192",
+            "messages": [{"role": "user", "content": problem}],
             "temperature": 0.7
         }
 
@@ -95,12 +96,11 @@ def handle_message(message):
 
         user_states.pop(user_id, None)
     else:
-        # Fallback: Try to evaluate the message if it's a math expression
         try:
             result = eval(message.text.strip())
             bot.reply_to(message, f"Result: {result}")
         except:
-            bot.reply_to(message, " Unrecognized input. Use /help to see available commands.")
+            bot.reply_to(message, "Unrecognized input. Use /help to see available commands.")
 
 # Start the bot
 print("Bot is running...")
